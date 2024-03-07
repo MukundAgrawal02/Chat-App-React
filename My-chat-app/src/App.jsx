@@ -48,6 +48,12 @@ function App() {
   }, []);
 
   const sendMessage = async () => {
+    // Check if newMessage is empty before sending the message
+    if (newMessage.trim() === "") {
+      // Do not send an empty message
+      return;
+    }
+  
     await addDoc(collection(db, "messages"), {
       uid: user.uid,
       photoURL: user.photoURL,
@@ -55,9 +61,10 @@ function App() {
       text: newMessage,
       timestamp: serverTimestamp(),
     });
-
+  
     setNewMessage("");
   };
+  
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -72,24 +79,29 @@ function App() {
     <div className="flex justify-center bg-gray-800 py-10 min-h-screen">
       {user ? (
         <div>
-          <div> Logged in as {user.displayName}</div>
-          <input
+          <div className="text-white"> Logged in as {user.displayName}</div>
+          <div className="d-flex justify-content-evenly p-3 m-3">
+          <div className="form-floating m-3">
+          <textarea
+          className="form-control" placeholder="Leave a comment here" id="floatingTextarea"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
           />
+            <label htmlFor="floatingTextarea">Type message</label>
+          </div>
           <button
-            className=" bg-white rounded-[10px] hover:bg-blue-400 p-3"
+            className="m-3 bg-white rounded-[10px] hover:bg-blue-400 p-3"
             onClick={sendMessage}
           >
             Send Message
           </button>
           <button
-            className="mb-8 bg-white rounded-[10px] p-3"
+            className="m-3 bg-white rounded-[10px] p-3"
             onClick={() => auth.signOut()}
           >
             Logout
           </button>
-
+        </div>
           <div className="flex flex-col gap-5">
             {messages.map((msg) => (
               <div
@@ -116,7 +128,7 @@ function App() {
           </div>
         </div>
       ) : (
-        <button onClick={handleGoogleLogin}>Login with Google</button>
+        <button className="text-white" onClick={handleGoogleLogin}>Login with Google</button>
       )}
     </div>
   );
