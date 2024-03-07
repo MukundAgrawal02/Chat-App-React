@@ -79,9 +79,9 @@ function App() {
     <div className="flex justify-center bg-gray-800 py-10 min-h-screen">
       {user ? (
         <div>
-          <div className="text-white"> Logged in as {user.displayName}</div>
-          <div className="d-flex justify-content-evenly p-3 m-3">
-          <div className="form-floating m-3">
+          <div className="text-white row-cols-6"> Logged in as {user.displayName}</div>
+          <div className="row d-flex justify-content-evenly p-3 m-3">
+          <div className="form-floating m-3 col-sm-12">
           <textarea
           className="form-control" placeholder="Leave a comment here" id="floatingTextarea"
             value={newMessage}
