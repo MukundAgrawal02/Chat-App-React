@@ -6,6 +6,7 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
+  signOut // Add signOut import
 } from "firebase/auth";
 import {
   getFirestore,
@@ -94,6 +95,14 @@ function App() {
     await deleteDoc(doc(db, "messages", messageId));
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="flex justify-center items-center bg-gray-800 py-10 min-h-screen">
       <div className="w-full max-w-xl">
@@ -105,7 +114,8 @@ function App() {
               </div>
               <button
                 id="logoutButton"
-                className=" bg-white text-gray-800 px-4 py-2 rounded-lg"
+                className="bg-white text-gray-800 px-4 py-2 rounded-lg"
+                onClick={handleLogout} // Add onClick event for logout
               >
                 Logout
               </button>
