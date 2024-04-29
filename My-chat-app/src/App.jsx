@@ -1,3 +1,4 @@
+import { MdDeleteForever } from "react-icons/md";
 import { useState, useEffect } from "react";
 import { auth, app } from "./firebase";
 import "./App.css";
@@ -14,8 +15,9 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
-// import { auth, app } from '../firebase'
 
 const db = getFirestore(app);
 
@@ -48,9 +50,7 @@ function App() {
   }, []);
 
   const sendMessage = async () => {
-    // Check if newMessage is empty before sending the message
     if (newMessage.trim() === "") {
-      // Do not send an empty message
       return;
     }
   
@@ -64,7 +64,6 @@ function App() {
   
     setNewMessage("");
   };
-  
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -75,61 +74,92 @@ function App() {
       console.log(error);
     }
   };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent form submission
+      sendMessage();
+    }
+  };
+
+  const deleteMessage = async (messageId) => {
+    await deleteDoc(doc(db, "messages", messageId));
+  };
+
   return (
-    <div className="flex justify-center bg-gray-800 py-10 min-h-screen">
-      {user ? (
-        <div>
-          <div className="text-white row-cols-6"> Logged in as {user.displayName}</div>
-          <div className="row d-flex justify-content-evenly p-3 m-3">
-          <div className="form-floating m-3 col-sm-12">
-          <textarea
-          className="form-control" placeholder="Leave a comment here" id="floatingTextarea"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-          />
-            <label htmlFor="floatingTextarea">Type message</label>
-          </div>
-          <button
-            className="m-3 bg-white rounded-[10px] hover:bg-blue-400 p-3"
-            onClick={sendMessage}
-          >
-            Send Message
-          </button>
-          <button
-            className="m-3 bg-white rounded-[10px] p-3"
-            onClick={() => auth.signOut()}
-          >
-            Logout
-          </button>
-        </div>
-          <div className="flex flex-col gap-5">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`message flex ${
-                  msg.data.uid === user.uid ? "justify-end" : "justify-start  "
-                }`}
+    <div className="flex justify-center items-center bg-gray-800 py-10 min-h-screen">
+      <div className="w-full max-w-xl">
+        {user ? (
+          <>
+            <div className="text-white mb-4 text-2xl font-bold">Logged in as {user.displayName}</div>
+            <div className="flex items-center mb-4">
+              <textarea
+                className="form-textarea w-full rounded-lg p-2 mr-2"
+                placeholder="Type message"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                onClick={sendMessage}
               >
+                Send
+              </button>
+            </div>
+            <div className="mt-4 h-96 overflow-y-auto rounded-lg border">
+              {messages.map((msg) => (
                 <div
-                  className={`message flex flex-row p-3 gap-3 rounded-[20px] items-center ${
-                    msg.data.uid === user.uid
-                      ? " text-white bg-blue-500"
-                      : " bg-white "
-                  }`}
+                  key={msg.id}
+                  className={`flex ${
+                    msg.data.uid === user.uid ? "justify-end" : "justify-start"
+                  } mb-2`}
                 >
-                  <img
-                    className="w-10 h-10 rounded-full"
-                    src={msg.data.photoURL}
-                  />
-                  {msg.data.text}
+                  <div
+                    className={`flex flex-row p-3 gap-3 rounded-lg border ${
+                      msg.data.uid === user.uid
+                        ? "border-blue-500 text-white bg-blue-500"
+                        : "border-gray-300 text-gray-800 bg-gray-300"
+                    }`}
+                  >
+                    <img
+                      className="w-10 h-10 rounded-full"
+                      src={msg.data.photoURL}
+                      alt="User"
+                    />
+                    <span>{msg.data.text}</span>
+                    {msg.data.uid === user.uid && (
+                      <button
+                        className="ml-auto text-red-500 hover:text-red-600 focus:outline-none"
+                        onClick={() => deleteMessage(msg.id)}
+                      >
+                        <MdDeleteForever className="text-lg" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <button
+              className="mt-4 bg-white text-gray-800 px-4 py-2 rounded-lg"
+              onClick={() => auth.signOut()}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <div className="text-white text-center">
+            <h2>Welcome to the Chat App</h2>
+            <p>Please log in with your Google account to start chatting.</p>
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4"
+              onClick={handleGoogleLogin}
+            >
+              Login with Google
+            </button>
           </div>
-        </div>
-      ) : (
-        <button className="text-white" onClick={handleGoogleLogin}>Login with Google</button>
-      )}
+        )}
+      </div>
     </div>
   );
 }
