@@ -1,5 +1,5 @@
 import { MdDeleteForever } from "react-icons/md";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { auth, app } from "./firebase";
 import "./App.css";
 import {
@@ -25,6 +25,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     const q = query(collection(db, "messages"), orderBy("timestamp"));
@@ -35,6 +36,7 @@ function App() {
           data: doc.data(),
         }))
       );
+      scrollToBottom();
     });
     return unsubscribe;
   }, []);
@@ -49,11 +51,17 @@ function App() {
     });
   }, []);
 
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const sendMessage = async () => {
     if (newMessage.trim() === "") {
       return;
     }
-  
+
     await addDoc(collection(db, "messages"), {
       uid: user.uid,
       photoURL: user.photoURL,
@@ -61,7 +69,7 @@ function App() {
       text: newMessage,
       timestamp: serverTimestamp(),
     });
-  
+
     setNewMessage("");
   };
 
@@ -91,23 +99,18 @@ function App() {
       <div className="w-full max-w-xl">
         {user ? (
           <>
-            <div className="text-white mb-4 text-2xl font-bold">Logged in as {user.displayName}</div>
-            <div className="flex items-center mb-4">
-              <textarea
-                className="form-textarea w-full rounded-lg p-2 mr-2"
-                placeholder="Type message"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
+            <div className="d-flex flex-column align-items-center text-center">
+              <div className="text-white mb-2 text-2xl font-bold">
+                Logged in as <span id="username">😄{user.displayName}</span>
+              </div>
               <button
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-                onClick={sendMessage}
+                id="logoutButton"
+                className=" bg-white text-gray-800 px-4 py-2 rounded-lg"
               >
-                Send
+                Logout
               </button>
             </div>
-            <div className="mt-4 h-96 overflow-y-auto rounded-lg border">
+            <div className="mt-3 h-96 overflow-y-auto rounded-lg border p-2">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -139,13 +142,23 @@ function App() {
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
-            <button
-              className="mt-4 bg-white text-gray-800 px-4 py-2 rounded-lg"
-              onClick={() => auth.signOut()}
-            >
-              Logout
-            </button>
+            <div className="flex items-center mt-2">
+              <textarea
+                className="form-textarea w-full rounded-lg p-2 mr-2"
+                placeholder="Type message"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                onClick={sendMessage}
+              >
+                Send
+              </button>
+            </div>
           </>
         ) : (
           <div className="text-white text-center">
