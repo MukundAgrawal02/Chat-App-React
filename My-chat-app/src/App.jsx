@@ -6,7 +6,7 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
-  signOut // Add signOut import
+  signOut
 } from "firebase/auth";
 import {
   getFirestore,
@@ -103,6 +103,17 @@ function App() {
     }
   };
 
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return ''; // Return an empty string if timestamp is null or undefined
+    const date = new Date(timestamp.seconds * 1000);
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12; // Convert to 12-hour format and handle 0 as 12
+    hours = hours.toString().padStart(2, '0');
+    return `${hours}:${minutes} ${ampm}`;
+  };
+  
   return (
     <div className="flex justify-center items-center bg-gray-800 py-10 min-h-screen">
       <div className="w-full max-w-xl">
@@ -115,7 +126,7 @@ function App() {
               <button
                 id="logoutButton"
                 className="bg-white text-gray-800 px-4 py-2 rounded-lg"
-                onClick={handleLogout} // Add onClick event for logout
+                onClick={handleLogout}
               >
                 Logout
               </button>
@@ -140,7 +151,7 @@ function App() {
                       src={msg.data.photoURL}
                       alt="User"
                     />
-                    <span>{msg.data.text}</span>
+                    <span>{msg.data.text} <br/>{formatTimestamp(msg.data.timestamp)}</span>
                     {msg.data.uid === user.uid && (
                       <button
                         className="ml-auto text-red-500 hover:text-red-600 focus:outline-none"
